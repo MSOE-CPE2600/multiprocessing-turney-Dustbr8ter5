@@ -11,16 +11,16 @@
 #include <unistd.h>
 #include <string.h>
 #include "jpegrw.h"
+#include <sys/wait.h>
 
 // local routines
-static int iteration_to_color( int i, int max );
-static int iterations_at_point( double x, double y, int max );
+static int iteration_to_color( int i, int max);
+static int iterations_at_point( double x, double y, int max);
 static void compute_image( imgRawImage *img, double xmin, double xmax,
-									double ymin, double ymax, int max );
+									double ymin, double ymax, int max);
 static void show_help();
 
-int main( int argc, char *argv[] )
-{
+int main( int argc, char *argv[]) {
 	char c;
 
 	// These are the default configuration values used
@@ -38,7 +38,7 @@ int main( int argc, char *argv[] )
 	// For each command line argument given,
 	// override the appropriate configuration value.
 
-	while((c = getopt(argc,argv,"x:y:s:W:H:m:o:h:c"))!=-1) {
+	while((c = getopt(argc,argv,"x:y:s:W:H:m:o:c:h"))!=-1) {
 		switch(c) 
 		{
 			case 'x':
@@ -62,13 +62,14 @@ int main( int argc, char *argv[] )
 			case 'o':
 				outfile = optarg;
 				break;
+            case 'c':
+                child = atoi(optarg);
+                break;
 			case 'h':
 				show_help();
 				exit(1);
 				break;
-            case 'c':
-                child = atoi(optarg);
-                break;
+            
 		}
 	}
     //printf("%d Child\n", child);
@@ -78,12 +79,13 @@ int main( int argc, char *argv[] )
         for(int i = 0; i < 50; i++) {
             temp = malloc(strlen(outfile)*sizeof(char));
             char num[4];
+            char extension[4] = ".jpg";
             sprintf(num, "%d", i);
             for(int j = 0; j < strlen(outfile) - 4; j++) {
                 temp[j] = outfile[j];
             }
             strcat(temp, num);
-            strcat(temp, ".jpg");
+            strcat(temp, extension);
             // Calculate y scale based on x scale (settable) and image sizes in X and Y (settable)
             if(i == 0) {
 	            yscale = xscale / image_width * image_height;
@@ -101,7 +103,7 @@ int main( int argc, char *argv[] )
 	        setImageCOLOR(img,0);
 
 	        // Compute the Mandelbrot image
-	        compute_image(img,xcenter-xscale/2,xcenter+xscale/2,ycenter-yscale/2,ycenter+yscale/2,max);
+	        compute_image(img, xcenter - xscale / 2, xcenter + xscale / 2, ycenter - yscale / 2, ycenter + yscale / 2, max);
 
 	        // Save the image in the stated file.
 	        storeJpegImageFile(img,temp);
@@ -110,20 +112,67 @@ int main( int argc, char *argv[] )
 	        freeRawImage(img);
             free(temp);
         }
-    } //else if(child == 2) {
+    } else { //Fork program amount of desired processes
+        double scale = xscale / 100;
+        for (int i = 0; i < child; i++) {
+            if (fork() == 0) {
+                //Set initial image
+                int start = i * (50 / child);
+                int end;
+                //Set ending image
+                if (i == child - 1) { //If only 1 image remains
+                    end = 50;
+                } else {
+                    end = start + (50 / child);
+                }
 
-    // } else if (child == 5) {
-        
-    // } else if (child == 10) {
+			    //Make child process designated images
+		        for (int j = start; j < end; j++) {
+                    double modscale = xscale - scale * j;
+				    // Calculate y scale based on x scale (settable) and image sizes in X and Y (settable)
+                    if(j == 0) { //
+                        yscale = xscale / image_width * image_height;
+                    } else {
+                        yscale = modscale / image_width * image_height;
+                    }
+		    	    // Create a raw image of the appropriate size.
+	                imgRawImage* img = initRawImage(image_width, image_height);
 
-    // } else if (child == 20) {
+	                // Fill it with a black
+	                setImageCOLOR(img, 0);
 
-    // } else {
-    //     perror("Invalid number of children entered\n");
-    //     exit(1);
-    // }
-	
+	                // Compute the Mandelbrot image
+    	            compute_image(img, xcenter - modscale / 2, xcenter + modscale / 2, ycenter - yscale / 2 , ycenter + yscale / 2, max);
 
+	                // Save the image in the stated file.
+	        	    char *temp = malloc(strlen(outfile)*sizeof(char));
+                    for(int k = 0; k < strlen(outfile) - 4; k++) {
+                        temp[k] = outfile[k];
+                    }
+                    char extension[4] = ".jpg";
+                    char num[2];
+	        	    sprintf(num, "%d", j);
+                    strcat(temp, num);
+                    strcat(temp, extension);
+	                storeJpegImageFile(img, temp);
+
+    	    	    // Display the configuration of the image.
+            	    printf("mandel: x=%lf y=%lf xscale=%lf yscale=%1f max=%d outfile=%s\n", xcenter, ycenter, modscale, yscale, max, temp);
+
+	                // free the mallocs
+	                freeRawImage(img);
+                    free(temp);
+		        }
+			    exit(1);
+		    }
+	    }
+        // Wait for children to finish
+	    int status;
+	    for (int i = 0; i < child; i++) {
+		    wait(&status);
+	    }
+	    printf("All Images Processed.\n");
+    }
 	return 0;
 }
 
@@ -193,7 +242,7 @@ Modify this function to make more interesting colors.
 */
 int iteration_to_color( int iters, int max )
 {
-	int color = 0xFFFFFF*iters/(double)max;
+	int color = 0xFEEFDE*iters/(double)max;
 	return color;
 }
 
