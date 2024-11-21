@@ -1,4 +1,6 @@
-/// 
+/// CPE 2600 Lab 11
+//  Vincent Vassallo
+//  Section 111
 //  mandel.c
 //  Based on example code found here:
 //  https://users.cs.fiu.edu/~cpoellab/teaching/cop4610_fall22/project3.html

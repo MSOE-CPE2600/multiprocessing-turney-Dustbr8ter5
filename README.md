@@ -1,4 +1,6 @@
 # System Programming Lab 11 Multiprocessing
+## Vincent Vassallo
+## CPE 2600 Section 111
 ## Overview
 Single process was completed using a for loop to create all 50 images with slight decrements in scale between them.
 

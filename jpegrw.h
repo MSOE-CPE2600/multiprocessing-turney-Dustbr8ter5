@@ -1,3 +1,7 @@
+/// CPE 2600 Lab 11
+//  Vincent Vassallo
+//  Section 111
+//  jpegrw.h
 #ifndef JPEGRW_H
 #define JPEGRW_H
 
