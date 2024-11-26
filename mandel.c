@@ -36,11 +36,12 @@ int main( int argc, char *argv[]) {
 	int    image_height = 1000;
 	int    max = 1000;
     int    child = 1;
+    int    threads = 1;
 
 	// For each command line argument given,
 	// override the appropriate configuration value.
 
-	while((c = getopt(argc,argv,"x:y:s:W:H:m:o:c:h"))!=-1) {
+	while((c = getopt(argc,argv,"x:y:s:W:H:m:o:c:t:h"))!=-1) {
 		switch(c) 
 		{
 			case 'x':
@@ -67,6 +68,8 @@ int main( int argc, char *argv[]) {
             case 'c':
                 child = atoi(optarg);
                 break;
+            case 't':
+                threads = atoi(optarg);
 			case 'h':
 				show_help();
 				exit(1);
@@ -96,7 +99,7 @@ int main( int argc, char *argv[]) {
                 yscale = xscale / image_width * image_height;
             }
 	        // Display the configuration of the image.
-	        printf("mandel: x=%lf y=%lf xscale=%lf yscale=%1f max=%d outfile=%s\n",xcenter,ycenter,xscale,yscale,max,temp);
+	        printf("mandel: x=%lf y=%lf xscale=%lf yscale=%1f max=%d outfile=%s threads=%d\n",xcenter,ycenter,xscale,yscale,max,temp,threads);
 
 	        // Create a raw image of the appropriate size.
 	        imgRawImage* img = initRawImage(image_width,image_height);
