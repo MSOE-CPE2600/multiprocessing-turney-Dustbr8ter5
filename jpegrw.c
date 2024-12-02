@@ -1,4 +1,4 @@
-/// CPE 2600 Lab 11
+/// CPE 2600 Lab 11/12
 //  Vincent Vassallo
 //  Section 111
 //  jpegrw.c
